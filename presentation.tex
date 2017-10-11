@@ -1,0 +1,669 @@
+\RequirePackage{pdf14}
+\documentclass[aspectratio=169]{beamer}
+\mode<presentation>
+
+\hypersetup{pdfpagemode=FullScreen}
+\useoutertheme[subsection=false]{smoothbars}
+
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows.meta}
+\usepackage{listings}
+\graphicspath{{res/}}
+
+\colorlet{punct}{red!60!black}
+\definecolor{delim}{RGB}{20,105,176}
+
+\lstdefinelanguage{json}{%
+	basicstyle=\scriptsize\ttfamily,
+	showstringspaces=false,
+	breaklines=true,
+	literate=
+		*{:}{{{\color{punct}{:}}}}{1}
+		{,}{{{\color{punct}{,}}}}{1}
+		{\{}{{{\color{delim}{\{}}}}{1}
+		{\}}{{{\color{delim}{\}}}}}{1}
+		{[}{{{\color{delim}{[}}}}{1}
+		{]}{{{\color{delim}{]}}}}{1}
+}
+
+\lstdefinelanguage{dockerfile}{%
+	basicstyle=\ttfamily,
+	showstringspaces=false,
+	breaklines=true
+}
+\lstset{language=dockerfile}
+
+\lstdefinelanguage{caveats}{%
+	basicstyle=\scriptsize\ttfamily,
+	showstringspaces=false,
+	breaklines=true
+}
+
+\tikzset{%
+	arrow/.style={%
+		draw,
+		fill=structure.fg,
+		single arrow,
+		minimum width=5ex,
+		minimum height=10ex,
+		single arrow head extend=1ex
+	}
+}
+\newcommand{\arrow}{%
+\tikz [baseline=-0.5ex]{\node [arrow] {};}
+}
+
+\title{\Huge Summary of Research and Proposals}
+\subtitle{\LARGE DSP Lab 2017}
+\author{\Large Yousef Amar}
+\institute{\hspace{0.3cm}\includegraphics[height=1.8cm]{qmul-logo}\hspace{1.3cm}\includegraphics[height=1.8cm]{unige-logo}\hspace{0.9cm}\includegraphics[height=0.8cm]{databox-logo}}
+\date{2017-10-02}
+\setbeamertemplate{navigation symbols}{}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+	\frametitle{Research Context}
+	\framesubtitle{The Databox Platform}
+	\centering
+	\includegraphics[width=\linewidth]{background}\\
+\end{frame}
+
+\begin{frame}
+	\frametitle{Research Context}
+	\framesubtitle{The Databox Platform}
+	\centering
+	\includegraphics[width=0.7\linewidth]{databox-high}\\[1em]
+	\pause
+	\textit{How can we design safe, scalable access control systems\\with arbitrary restrictions in this context?}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Research Context}
+	\framesubtitle{The Databox Platform}
+	\centering
+	\includegraphics[width=\linewidth]{arch}\\
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Implementation}
+	\framesubtitle{The Route}
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\begin{itemize}
+			\item Triad of \textit{target}, \textit{path}, and \textit{method}
+			\item The container as a host
+			\item RESTful APIs for all operations
+			\item Direct mapping of HTTP methods to CRUD functions
+			\item Per-route granular permissions
+		\end{itemize}
+		\column{.5\textwidth}
+		\centering
+		\tiny
+		\begin{lstlisting}[language=json]
+{
+  "target": "smartphone-store",
+  "path": "/accelerometer/ts/latest",
+  "method": "POST"
+}
+
+{
+  "target": "smartphone-store",
+  "path": "/(sub|unsub)/gps/*",
+  "method": "GET"
+}
+		\end{lstlisting}
+	\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Implementation}
+	\framesubtitle{Delegated Authorization}
+	\begin{columns}[c]
+		\column{.6\textwidth}
+		\begin{itemize}
+			\item Google Research: Macaroons
+			\begin{itemize}
+				\item A standard similar to signed cookies
+				\item Can be attenuated by ``caveats''
+				\item Embedded permissions
+				\item Minting and verification can be separated through shared secret keys
+			\end{itemize}
+		\end{itemize}
+		\begin{lstlisting}[language=caveats]
+    target = smartphone-store
+    path = /(sub|unsub)/gps/*
+    method = GET
+    time < 1489405851417
+
+    target = smartphone-store
+    path = /light/ts/range
+    method = GET
+    startTimestamp >= 1489405234352
+    endTimestamp <= 1489405259525
+		\end{lstlisting}
+		\column{.4\textwidth}
+		\centering
+		\includegraphics[height=\textwidth]{macaroons}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Implementation}
+	\framesubtitle{Resource Discovery}
+	\begin{itemize}
+		\item API for describing APIs
+		\item Directory servers
+		\item Many competing standards
+		\begin{itemize}
+			\item Resource Description Framework (RDF)
+			\item Web Application Description Language (WADL)
+			\item Web Services Description Language (WSDL)
+			\item eXtensible Resource Descriptor (XRD)
+		\end{itemize}
+		\item Subject-predicate-object style pervalent
+		\item Different formats and applications --- XML for REST, SOAP, OpenID
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Implementation}
+	\framesubtitle{Resource Discovery}
+	\begin{columns}[c]
+		\column{.49\textwidth}
+		\begin{itemize}
+			\item Hypercat: Recently joined BSI Group
+			\item IoT-first specification design
+			\item JSON/REST over XML/SOAP
+			\item Only cataloguing; ontologies and authorisation extensible
+			\item Discoverability vs accessibility
+			\item Catalogues can be nested, allowing decentralisation and distribution
+		\end{itemize}
+		\column{.51\textwidth}
+		\begin{lstlisting}[language=json,basicstyle=\tiny\ttfamily]
+{
+  "catalogue-metadata": [{
+    "rel": "urn:X-hypercat:rels:isContentType",
+    "val": "application/vnd.hypercat.catalogue+json"
+  }, {
+    "rel": "urn:X-hypercat:rels:hasDescription:en",
+    "val": "A Databox Store"
+  }],
+  "items": [{
+    "href": "http://some-store/light",
+    "item-metadata": [{
+      "rel": "urn:X-hypercat:rels:hasDescription:en",
+      "val": "Light Datasource"
+    }, {
+      "rel": "urn:X-databox:rels:hasVendor",
+      "val": "Databox Inc."
+    }, {
+      "rel": "urn:X-databox:rels:isActuator",
+      "val": false
+    }]
+  }]
+}
+		\end{lstlisting}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Implementation}
+	\framesubtitle{The Arbiter}
+	\centering
+	\includegraphics[width=\linewidth]{arch}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Implementation}
+	\framesubtitle{Authorisation Flow}
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{auth-flow}
+		\column{.6\textwidth}
+		\begin{enumerate}
+			\pause
+			\item CM passes unique tokens
+			\pause
+			\item CM updates permissions
+			\pause
+			\item Store registers itself
+			\pause
+			\item Arbiter responds with shared secret
+			\pause
+			\item Container requests bearer token
+			\pause
+			\item Arbiter checks and responds
+			\pause
+			\item Container can now read/write to store
+		\end{enumerate}
+	\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Implementation}
+	\framesubtitle{Transcription of Permissions}
+	\begin{columns}[c]
+		\column{.6\textwidth}
+		\begin{enumerate}
+			\item Drivers/apps come packaged with a \emph{manifest}
+			\begin{itemize}
+				\item Contain image metadata
+				\item Enumerate granular permissions for sources, concurrency, external access, and hardware
+			\end{itemize}
+			\item Users generate a Service-level Ageement (SLA)
+			\item The arbiter records granted permissions
+			\item Tokens are minted based on these
+		\end{enumerate}
+		\centering
+		\vspace{2em}
+		\includegraphics[width=0.5\textwidth]{transcription}
+		\column{.4\textwidth}
+		\centering
+		\begin{lstlisting}[language=json]
+{
+  "name": "app",
+  "author": "amar",
+  "permissions": [
+    {
+      "source": "twitter"
+      "required": true
+    },
+    {
+      "source": "gps"
+    },
+    {},
+    {}
+  ]
+}
+		\end{lstlisting}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Scalability}
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\centering
+		\scriptsize
+		\tikzstyle{block} = [rectangle, draw, text width=4em, text centered, minimum height=2em]
+		\tikzstyle{store} = [cylinder, shape border rotate=90, draw, text width=4em, text centered, aspect=0.1, minimum height=2em]
+		\tikzstyle{line}  = [draw, -{Stealth[length=3mm]}]
+		\newcommand{\triplet} {%
+			\begin{tikzpicture}[node distance = 8em, auto]
+				\node [block] (driver) {Driver};
+				\node [store, right of=driver] (store) {Store};
+				\node [block, right of=store] (app) {App};
+				\path [line] (driver) -- (store);
+				\path [line] (store) -- (app);
+			\end{tikzpicture}
+		}
+		\\
+		\triplet\\
+		\triplet\\
+		\triplet\\
+		\triplet\\
+		$\vdots$
+
+		\pause
+
+		\column{.5\textwidth}
+		\centering
+		\scriptsize
+		\tikzstyle{block} = [rectangle, draw, text width=7em, text centered, minimum height=2em, rounded corners=3pt]
+		\tikzstyle{store} = [cylinder, shape border rotate=90, draw, text width=4em, text centered, aspect=0.1, minimum height=2em]
+		\tikzstyle{line}  = [draw, -{Stealth[length=3mm]}]
+		\newcommand{\pair} {%
+			\begin{tikzpicture}[node distance = 10em, auto]
+				\node [block] (process) {Load Generator};
+				\node [store, right of=process] (store) {Store};
+				\path [line] (process) -- (store);
+			\end{tikzpicture}
+		}
+		\\
+		\pair\\
+		\pair\\
+		\pair\\
+		\pair\\
+		$\vdots$
+
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Scalability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.8\linewidth]{cpu-bins}
+		\caption{Percentage CPU Usage by Container Type}
+	\end{figure}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.8\linewidth]{mem-bins}
+		\caption{Memory Usage by Container Type}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Scalability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{io-bins}
+		\caption{Sum Net I/O by Container Type}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Scalability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{stores-2GB-swap-0ms-delay}
+		\caption{Inserts/s over Stores under Maximum Load}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Scalability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{arbiter}
+		\caption{Stores Launched over Time}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Topology}
+
+	\begin{columns}[c]
+		\column{.4\textwidth}
+		Differences in Time to Availability~(TTA)
+		\begin{enumerate}
+			\item Device $\rightarrow$ Cloud:\\{$65ms$}
+			\item Device $\rightarrow$ Cloud $\rightarrow$ Home:\\{$83ms$}
+			\item Device $\rightarrow$ Home:\\{$78ms$}
+			\item Device $\rightarrow$ Home $\rightarrow$ Cloud:\\{$80ms$}
+		\end{enumerate}
+		\column{.6\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\textwidth]{scenarios}
+			\caption{The four possible data flow scenarios tested}
+		\end{figure}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Topology}
+
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\columnwidth]{acc-inout-cloud}
+			\caption{Data Time to Availability from Device to Cloud Databox Directly}
+		\end{figure}
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\columnwidth]{acc-inout-home}
+			\caption{Data Time to Availability from Device to Home Databox Directly}
+		\end{figure}
+	\end{columns}
+	\centering
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Topology}
+
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\columnwidth]{acc-inout-cloud-home}
+			\caption{Data Time to Availability from Device to Home Databox via Cloud VPN}
+		\end{figure}
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\columnwidth]{acc-inout-home-cloud}
+			\caption{Data Time to Availability from Device to Cloud Databox via Home VPN}
+		\end{figure}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Topology}
+
+	\begin{itemize}
+		\item TTA source away from home \textgreater \ source at home
+		\item So minor, barely indistinguishable from NTP drift
+		\item Based on performance alone, UX indifferent
+		\item Scenarios through home (especially when source is away) have mean shifted right due to latency spikes
+		\item Direct connections mean lower TTA, and cloud faster than home ceteris paribus
+		\item Small difference for devices as sources vs cloud servers
+		\item For devices, processing at home \textgreater \ in the cloud $\pm$ NTP error even ignoring privacy advantages
+		\item Home vs cloud --- reliability vs cost
+		\item Pure cloud only more advantageous for off-site processing (e.g.\ GPU-heavy image processing)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Time to Availability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{tta-tte.pdf}
+		\caption{Sections of the data pipeline timed}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Time to Availability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.8\linewidth]{source-tta-rpi.pdf}
+		\caption{Time-to-Availability (TTA) on a Raspberry Pi for high-frequency sensors}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Evaluation}
+	\framesubtitle{Time to Availability}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.8\linewidth]{source-tta.pdf}
+		\caption{Time-to-Availability (TTA) on an Intel NUC for high-frequency sensors}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Serverless Paradigm}
+	\framesubtitle{Background}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=\linewidth]{openlambda}
+		\caption{Hendrickson, et al. "Serverless computation with openlambda." Elastic 60 (2016): 80.}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Serverless Paradigm}
+	\framesubtitle{Architecture}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.6\linewidth]{openwhisk-arch}
+		\caption{IBM's High-level OpenWhisk Architecture Diagram}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{The Serverless Paradigm}
+	\framesubtitle{Architecture}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.5\linewidth]{kafka-arch}
+		\caption{Apache Kafka High-level Architecture Diagram}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Low-latency Serverless}
+	\framesubtitle{Approach}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.5\textwidth]{diagram}
+		\caption{An Overview of Inter-component Relationships}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Low-latency Serverless}
+	\framesubtitle{Approach}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\textwidth]{cache}
+		\caption{The Internal Components of a Producer}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Low-latency Serverless}
+	\framesubtitle{Approach}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.6\textwidth]{service}
+		\caption{Producer-intrinsic Steps for Computing Partitioning Decisions from Stale Queue Lengths}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Low-latency Serverless}
+	\framesubtitle{Simulations}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.5\textwidth]{diffservices-topology}
+		\caption{An Example of Simulation Topology}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Low-latency Serverless}
+	\framesubtitle{Simulations}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.49\textwidth]{diffservices-lyapunov}
+		\includegraphics[width=0.49\textwidth]{diffservices-optimal}
+		\caption{Simulation Results with Different Partitioning Algorithms}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Next Steps}
+	\framesubtitle{Privacy and Risk Metrics}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{surprisal}
+		\caption{One Proof of Concept Experiment -- Surprisal over Real Smart Meter Data}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Next Steps}
+	\framesubtitle{Serverless over Transient Clouds}
+
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\begin{itemize}
+			\item Serverless on the edge
+			\item Optimising for context through latency
+			\item Processor selection based on arbitrary metrics, e.g.\ surprisal
+		\end{itemize}
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.8\columnwidth]{tcac}
+		\end{figure}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Next Steps}
+	\framesubtitle{Transient Privacy-Aware Clouds}
+
+	\begin{columns}[c]
+		\column{.5\textwidth}
+		\begin{itemize}
+			\item Encoding user-defined thresholds into bearer tokens
+			\item Joint context at hierarchical levels
+			\item TCACs $\to$ TPACs?
+			%\item Arbiter token minting under load evaluation
+			%\item Performance vs security when modifying token expiry
+		\end{itemize}
+		\column{.5\textwidth}
+		\begin{figure}
+			\centering
+			\includegraphics[width=\columnwidth]{tcacs}
+		\end{figure}
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Next Steps}
+	\framesubtitle{The Big Picture}
+
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{dependencies}
+		\caption{A High-level Dependency Graph of Research Activities}
+	\end{figure}
+\end{frame}
+
+\begin{frame}[plain,c]
+	\begin{center}
+		\usebeamerfont*{frametitle}
+		\usebeamercolor[fg]{frametitle}
+		\\[4em]
+		\Huge Thank you for your attention!\\[1em]
+		\Large Questions?\\[1em]
+	\end{center}
+	\footnotesize
+	\begin{table}[]
+		\begin{tabular}{ll}
+			More info:&\texttt{http://yousefamar.com/}
+		\end{tabular}
+	\end{table}
+\end{frame}
+
+\end{document}

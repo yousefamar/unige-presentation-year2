@@ -1,0 +1,68 @@
+[file]
+presentation.pdf
+[notes]
+### 2
+- For those not familiar
+- Creating lots of data; sources
+- Processing of this data by controllers
+- Privacy not preserved; breaches
+- Disconnected sources
+- Databox networked device in home
+- Provides access to personal data
+- Platform for analytics and automation
+- Brings the processing to the data
+- Emits only the results
+### 3
+- High-level architecture of components
+- Focus on just a few things
+- Drivers interface with your data sources
+- Apps process them
+- Stores connect the two
+- Apps and drivers potentially written by 3rd parties
+- Don't have to be on same device
+- Problem is \[question\]
+### 4
+- More detailed look at solution
+- Important for Databox, but also any similar system
+- All communication over HTTPS, REST APIs
+- Each container has an associated store
+- Token auth for access control
+- (Hypercat for resource description)
+- Will get back to this later
+### 5
+- Triad, important abstraction
+- Target is host is container
+- Path is REST endpoint
+- Method is HTTP verb maps to CRUD operations
+- Explain examples
+### 6
+- Explain
+- Better than some OAuth2 implementations for this reason (auth and resource)
+### 9
+- Arbiter
+- Mints and distributes tokens
+- Holds root catalogue
+### 15
+- A single store 65 inserts/s
+- 4 cores 110 insets/s
+- Beyond 10 RAM exhausted, use of virtual memory affects perf
+- Outliers bursty batching of inserts
+- Memory ran out after 14 stores
+### 16
+- Bottleneck memory
+- Negligible arbiter overhead
+### 30
+- To simulate load changing effective service rate
+### 31
+- Left: minimising Lyapunov drift
+- Right: expected waiting time
+- All drain at once, earlier, even though queue lengths are imbalanced
+### 32
+- Information-theoretic, Content-independent Measures
+### 33
+- Automatically compute context
+- Automatically balance based on this
+### 34
+- Privacy as your context
+- Joint information reducing risk and leakage into the cloud
+- Emergent privacy-awareness?
