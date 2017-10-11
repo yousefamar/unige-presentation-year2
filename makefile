@@ -1,4 +1,4 @@
-TARGETS = presentation
+TARGETS = long
 
 TEXFILES = $(wildcard *.tex) $(wildcard */*.tex)
 PDFS = $(addsuffix .pdf,$(TARGETS))
