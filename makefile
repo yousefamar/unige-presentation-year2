@@ -1,4 +1,4 @@
-TARGETS = long
+TARGETS = long short
 
 TEXFILES = $(wildcard *.tex) $(wildcard */*.tex)
 PDFS = $(addsuffix .pdf,$(TARGETS))
